@@ -37,12 +37,28 @@ class BitMap[T] {
     bitmaps(key) = current ++ indices
   }
 
-  def get(key: T): BitSet = {
+  def getBitSet(key: T): BitSet = {
     bitmaps.getOrElse(key, BitSet.empty)
   }
 
   def search(key: T): List[Int] = {
     bitmaps.getOrElse(key, BitSet.empty).toList
+  }
+
+  def union(keys: List[T]): List[Int] = {
+    keys.map(key => bitmaps.getOrElse(key, BitSet.empty)).reduce((a, b) => a | b).toList
+  }
+
+  def inter(keys: List[T]): List[Int] = {
+    keys.map(key => bitmaps.getOrElse(key, BitSet.empty)).reduce((a, b) => a & b).toList
+  }
+
+  def diff(keys: List[T]): List[Int] = {
+    keys.map(key => bitmaps.getOrElse(key, BitSet.empty)).reduce((a, b) => a &~ b).toList
+  }
+
+  def symDiff(keys: List[T]): List[Int] = {
+    keys.map(key => bitmaps.getOrElse(key, BitSet.empty)).reduce((a, b) => a ^ b).toList
   }
 }
 
@@ -52,7 +68,13 @@ class PokemonZukan(
   private val typeBitmap: BitMap[String] 
   ) {
   def search(pokemonType: String): List[Pokemon] = {
-    pokemons.filter(pokemon => typeBitmap.search(pokemonType).contains(pokemon.id))
+    val resultIds = typeBitmap.search(pokemonType)
+    pokemons.filter(pokemon => resultIds.contains(pokemon.id))
+  }
+
+  def searchAnd(pokemonTypes: List[String]): List[Pokemon] = {
+    val resultIds = typeBitmap.inter(pokemonTypes)
+    pokemons.filter(pokemon => resultIds.contains(pokemon.id))
   }
 
 }
@@ -107,7 +129,7 @@ object PokemonBitmap extends App {
 
       val pokemonZukan = PokemonZukan(pokemons)
       
-      pokemonZukan.search("Normal").foreach(pokemon => println(pokemon.name + ": " + pokemon.type1 + ", " + pokemon.type2))
+      pokemonZukan.searchAnd(List("Normal", "Fire")).foreach(pokemon => println(pokemon.name + ": " + pokemon.type1 + ", " + pokemon.type2))
   }
   catch {
     case e: Exception => println(e)
