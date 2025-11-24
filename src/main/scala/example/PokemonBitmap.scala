@@ -25,39 +25,57 @@ case class Pokemon(
 )
 
 class BitMap[T] {
-  private val bitMaps = mutable.Map[T, BitSet]()
+  private val bitmaps = mutable.Map[T, BitSet]()
 
   def add(key: T, index: Int) = {
-    val current = bitMaps.getOrElse(key, BitSet.empty)
-    bitMaps(key) = current + index
+    val current = bitmaps.getOrElse(key, BitSet.empty)
+    bitmaps(key) = current + index
   }
 
   def addAll(key: T, indices: List[Int]) = {
-    val current = bitMaps.getOrElse(key, BitSet.empty)
-    bitMaps(key) = current ++ indices
+    val current = bitmaps.getOrElse(key, BitSet.empty)
+    bitmaps(key) = current ++ indices
   }
 
   def get(key: T): BitSet = {
-    bitMaps.getOrElse(key, BitSet.empty)
+    bitmaps.getOrElse(key, BitSet.empty)
   }
 
   def search(key: T): List[Int] = {
-    bitMaps.getOrElse(key, BitSet.empty).toList
+    bitmaps.getOrElse(key, BitSet.empty).toList
+  }
+}
+
+class PokemonZukan(
+  val pokemons: List[Pokemon],
+  private val pokemonTypes: List[String],
+  private val typeBitmap: BitMap[String] 
+  ) {
+  def search(pokemonType: String): List[Pokemon] = {
+    pokemons.filter(pokemon => typeBitmap.search(pokemonType).contains(pokemon.id))
   }
 
 }
 
-
-// class PokemonListsByTypes {
-//   private val pokemonLists = List[Pokemon] 
-// }
-
-object PokemonListsByTypes {
-  def getPokemonListsByTypes(pokemons: List[Pokemon], pokemonTypes: List[String]): List[(String, List[Int])] = {
-    pokemonTypes.map(pokemonType => (pokemonType, pokemons.filter(pokemon => pokemon.type1 == pokemonType || pokemon.type2 == pokemonType).map(pokemon => pokemon.id)))
+object PokemonZukan {
+  def apply(pokemons: List[Pokemon]): PokemonZukan = {
+    val pokemonTypes = getPokemonTypes(pokemons)
+    val pokemonListsByTypes = getPokemonListsByTypes(pokemons, pokemonTypes)
+    val typeBitmap = getPokemonBitmapByTypes(pokemonListsByTypes)
+    new PokemonZukan(pokemons, pokemonTypes, typeBitmap)
   }
 
-  def getPokemonBitmapByTypes(pokemonListsByTypes: List[(String, List[Int])]): BitMap[String] = {
+  private def getPokemonTypes(pokemons: List[Pokemon]): List[String] = {
+    pokemons.flatMap(pokemon => List(pokemon.type1, pokemon.type2)).distinct
+  }
+
+  private def getPokemonListsByTypes(pokemons: List[Pokemon], pokemonTypes: List[String]): List[(String, List[Int])] = {
+    pokemonTypes.map{ pokemonType => 
+      (pokemonType, pokemons.filter(pokemon => pokemon.type1 == pokemonType || pokemon.type2 == pokemonType).map(pokemon => pokemon.id))
+    }
+  }
+
+  private def getPokemonBitmapByTypes(pokemonListsByTypes: List[(String, List[Int])]): BitMap[String] = {
     val typeBitmap = new BitMap[String]()
     pokemonListsByTypes.foreach(pokemonList => typeBitmap.addAll(pokemonList._1, pokemonList._2))
     typeBitmap
@@ -86,15 +104,10 @@ object PokemonBitmap extends App {
         row("Legendary").toBoolean
         )
       }
-      val types = pokemons.flatMap(pokemon => List(pokemon.type1, pokemon.type2)).distinct
 
-      val pokemonListsByTypes = PokemonListsByTypes.getPokemonListsByTypes(pokemons, types)
-      println(pokemonListsByTypes)
-
-      val typeBitmap = PokemonListsByTypes.getPokemonBitmapByTypes(pokemonListsByTypes)
-
-      println(typeBitmap.search("Normal"))
-
+      val pokemonZukan = PokemonZukan(pokemons)
+      
+      pokemonZukan.search("Normal").foreach(pokemon => println(pokemon.name + ": " + pokemon.type1 + ", " + pokemon.type2))
   }
   catch {
     case e: Exception => println(e)
