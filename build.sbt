@@ -10,6 +10,7 @@ lazy val root = (project in file("."))
     name := "bitmap-scala",
     libraryDependencies ++= Seq(
       "com.github.tototoshi" %% "scala-csv" % "1.3.10",
+      "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       munit % Test
     )
