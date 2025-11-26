@@ -14,6 +14,8 @@ class PokemonZukan(
     pokemons.filter(pokemon => resultIds.contains(pokemon.id))
   }
 
+  def getPokemonTypes: List[String] = pokemonTypes
+
 }
 
 object PokemonZukan {
@@ -25,7 +27,7 @@ object PokemonZukan {
   }
 
   private def getPokemonTypes(pokemons: List[Pokemon]): List[String] = {
-    pokemons.flatMap(pokemon => List(pokemon.type1, pokemon.type2)).distinct
+    pokemons.flatMap(pokemon => List(pokemon.type1, pokemon.type2)).distinct.filter(_.nonEmpty)
   }
 
   private def getPokemonListsByTypes(pokemons: List[Pokemon], pokemonTypes: List[String]): List[(String, List[Int])] = {

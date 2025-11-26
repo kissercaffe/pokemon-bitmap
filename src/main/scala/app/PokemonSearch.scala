@@ -1,13 +1,14 @@
 package app
 
 import com.github.tototoshi.csv.CSVReader
+import com.github.tototoshi.csv.defaultCSVFormat
 import java.io.File
 
 import model.Pokemon
 import zukan.PokemonZukan
 
 object PokemonSearch extends App {
-  val reader = CSVReader.open(new File("../../dataset/Pokemon.csv"))
+  val reader = CSVReader.open(new File("dataset/Pokemon.csv"))
   try {
     val pokemons = reader.allWithHeaders().map{row => 
       Pokemon(
@@ -41,6 +42,8 @@ object PokemonSearch extends App {
             println("終了します。")
           case Some(q) if q.trim.toLowerCase == "quit" || q.trim.toLowerCase == "exit" =>
             println("終了します。")
+          case Some(q) if q.trim.toLowerCase == "types" =>
+            println(pokemonZukan.getPokemonTypes.mkString(", "))
           case Some(q) if q.trim.isEmpty =>
             println("クエリが空です。")
             processQuery()
